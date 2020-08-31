@@ -1,4 +1,15 @@
-import {Client, Guild, GuildChannel, GuildMember, Role, RoleData, Snowflake, TextChannel, User} from 'discord.js';
+import {
+    Client,
+    Guild,
+    GuildChannel,
+    GuildMember,
+    PermissionResolvable,
+    Role,
+    RoleData,
+    Snowflake,
+    TextChannel,
+    User
+} from 'discord.js';
 import Timeout = NodeJS.Timeout;
 import {config} from 'dotenv';
 
@@ -273,7 +284,7 @@ export class DiscordService {
         const newRole = {
                 data: role ?? {
                     name: this.braincell_role_name,
-                    color: "GOLD",
+                    color: "RANDOM",
                     hoist: true,
                     mentionable: true
                 },
@@ -298,6 +309,10 @@ export class DiscordService {
                 message += `, so I'm gonna keep using \`${bg.role}\``;
             }
         } else {
+            if (bg.role?.permissions.any(['ADMINISTRATOR','MANAGE_ROLES'] as PermissionResolvable,false))
+            {
+                return `Can't pass around \`${roleName}\`, it's too important!`
+            }
             bg.role = roleToSet;
             if(!bg.role.hoist){
                 await bg?.role.setHoist(true, 'Look upon me and see my works, ye brainless ones')
@@ -387,7 +402,11 @@ export class DiscordService {
         await this.passTheBraincell(guild);
         bg.timer = setInterval(
             async () => {
-                await this.passTheBraincell(guild);
+                try {
+                    await this.passTheBraincell(guild);
+                } catch (err) {
+                    console.log('Had an issue passing the braincell: ' + err);
+                }
             },
             minutes*60000
         )
