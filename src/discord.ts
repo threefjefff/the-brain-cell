@@ -6,7 +6,6 @@ import {
     PermissionResolvable,
     Role,
     RoleData,
-    Snowflake,
     TextChannel,
     User
 } from 'discord.js';
@@ -114,37 +113,41 @@ export class DiscordService {
         *       or grab first channel
         *   Set braincell*/
         this.client.on('ready', async () => {
-            await this.setUsername('The Brain Cell');
+            try {
+                await this.setUsername('The Brain Cell');
 
-            const botSetupTasks = this.client.guilds.cache
-                .map((g) => g)
-                .map(async g => {
-                    const bg = new BrainGuild(g);
-                    this.braintrust[g.id] = bg;
+                const botSetupTasks = this.client.guilds.cache
+                    .map((g) => g)
+                    .map(async g => {
+                        const bg = new BrainGuild(g);
+                        this.braintrust[g.id] = bg;
 
-                    await this.sendMessage(g.id, await this.setChannel(g, 'fishing-channel'));
-                    await this.sendMessage(g.id, 'The braincell is ready to be passed around!')
-                    const all_members = await g.members.fetch()
+                        await this.sendMessage(g.id, await this.setChannel(g, 'bot-channel'));
+                        await this.sendMessage(g.id, 'The braincell is ready to be passed around!')
+                        const all_members = await g.members.fetch()
 
-                    //Gemme some members that have an empty space where a braincell goes
-                    const craniums =  all_members
-                        .filter((m) => !m.user.bot)
-                        .map((m) => m);
+                        //Gemme some members that have an empty space where a braincell goes
+                        const craniums =  all_members
+                            .filter((m) => !m.user.bot)
+                            .map((m) => m);
 
-                    bg.members = [
-                        ...bg.members,
-                        ...craniums
-                    ];
+                        bg.members = [
+                            ...bg.members,
+                            ...craniums
+                        ];
 
-                    //Set the default role
-                    await this.setRole(g, this.braincell_role_name);
+                        //Set the default role
+                        await this.setRole(g, this.braincell_role_name);
 
-                    if(!bg.role) {
-                        bg.role = await this.createRole(g);
-                    }
-                    await this.braincellTimer(g, this.timer_minutes);
-                });
-            Promise.all(botSetupTasks);
+                        if(!bg.role) {
+                            bg.role = await this.createRole(g);
+                        }
+                        await this.braincellTimer(g, this.timer_minutes);
+                    });
+                Promise.all(botSetupTasks);
+            } catch (err) {
+                console.log('Setup is gubbed: ' + err)
+            }
         });
 
         /*
