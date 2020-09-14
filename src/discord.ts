@@ -168,6 +168,7 @@ export class DiscordService {
         */
         this.client.on("guildMemberAdd", async (m) => {
             if(m.partial) await m.fetch();
+            if(m.user?.bot) return;
             await this.add_user(m as GuildMember)
         });
 
